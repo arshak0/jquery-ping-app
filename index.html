@@ -18,15 +18,6 @@
             margin-top: 50px;
         }
 
-        .app_modas_div {
-            display:flex;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-
-        .app_modas_div_p {
-            margin-left:10px;
-        }
         img.app_logo {
             position: absolute;
             width: 70px;
@@ -58,6 +49,8 @@
             color: #706f6f;
             font-size: 16px;
             font-weight: normal;
+            text-align: center;
+            line-height: 35px;
         }
 
         .app_main_body {
@@ -69,40 +62,30 @@
         .app_buttons_div {
             display: flex;
             justify-content: center;
+            margin-top: 30px;
         }
 
-        button {
+        .app_button {
+            margin-top: 20px;
             border: 1px solid black;
             outline: none;
             background: black;
             height: 40px;
-            width: 140px;
+            width: 200px;
             border-radius: 20px;
-            font-size: 15px;
+            font-size: 14px;
             color: white;
-            margin-left: 50%;
             cursor: pointer;
-            margin-left:40px;
         }
 
-        button:hover {
+        .app_button:hover {
             background: lightgray;
             color: black;
         }
 
-        button:active {
+        .app_button:active {
             background: yellow;
             color: black;
-        }
-
-        .app_buttons_div {
-            margin-top: 30px;
-        }
-
-        .app_started {
-            position: absolute;
-            right: 50px;
-            margin-top: 5px;
         }
 
         p {
@@ -111,7 +94,7 @@
         }
 
         .app_statisticsBlock {
-            margin-top: 20px;
+            margin-top: 50px;
         }
 
         .statistics_headline {
@@ -119,8 +102,21 @@
             margin-top: 15px;
         }
 
-        .mediana_headline {
-            margin-top: 4px;
+        input.app_input {
+            border: 1px solid black;
+            outline: none;
+            height: 40px;
+            width: 300px;
+            border-radius: 20px;
+            font-size: 15px;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        form.app_button_form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
     </style>
 </head>
@@ -129,7 +125,9 @@
         <div class="headline_block">
           <img class="app_logo" src="icon_logo.png" alt=""></img>
           <h1 class="app_h1">"Пингователь" любого сервера</h1>
-          <h2 class="app_h2"> Программа показывает примерное время пинга до сервера указанного в поле ввода</h2>
+          <h2 class="app_h2"> Программа показывает примерное время пинга до сервера указанного в поле ввода
+              <br>
+            Введите полный адрес сервера. Например, https://ebay.com</h2>
           <div  class="app_author_name_div">
             <p class="app_author_name">Arshak Ishkhanyan </p>
           </div>
@@ -139,7 +137,7 @@
         <div class="app_main_body">
           <div class="app_buttons_div">
             <form class="app_button_form">
-                <input class="app_input" type="text">
+                <input class="app_input" type="text" placeholder="Type the site">
               <button class="app_button" >Check the  ping of the server</button>
             </form>
           </div>
@@ -152,6 +150,65 @@
     </div>    
 </body>
 <script>
-    $('.app_statisticsBlock').css('margin-top','100px');
+
+      
+// See LICENSE for usage information
+
+// The following lines allow the ping function to be loaded via commonjs, AMD,
+// and script tags, directly into window globals.
+// Thanks to https://github.com/umdjs/umd/blob/master/templates/returnExports.js
+(function (root, factory) { if (typeof define === 'function' && define.amd) { define([], factory); } else if (typeof module === 'object' && module.exports) { module.exports = factory(); } else { root.ping = factory(); }
+}(this, function () {
+
+    /**
+     * Creates and loads an image element by url.
+     * @param  {String} url
+     * @return {Promise} promise that resolves to an image element or
+     *                   fails to an Error.
+     */
+    function request_image(url) {
+        return new Promise(function(resolve, reject) {
+            var img = new Image();
+            img.onload = function() { resolve(img); };
+            img.onerror = function() { reject(url); };
+            img.src = url + '?random-no-cache=' + Math.floor((1 + Math.random()) * 0x10000).toString(16);
+        });
+    }
+
+    /**
+     * Pings a url.
+     * @param  {String} url
+     * @param  {Number} multiplier - optional, factor to adjust the ping by.  0.3 works well for HTTP servers.
+     * @return {Promise} promise that resolves to a ping (ms, float).
+     */
+    function ping(url, multiplier) {
+        return new Promise(function(resolve, reject) {
+            var start = (new Date()).getTime();
+            var response = function() { 
+                var delta = ((new Date()).getTime() - start);
+                delta *= (multiplier || 1);
+                resolve(delta); 
+            };
+            request_image(url).then(response).catch(response);
+            // Set a timeout for max-pings, 5s.
+            setTimeout(function() { reject(Error('Timeout')); }, 5000);
+        });
+    }
+    
+    return ping;
+}));
+
+    $('.app_button_form').on('submit',function(e) {
+        e.preventDefault();
+        let ping_time=0;
+        ping(e.target.firstElementChild.value).then(function(delta) {
+            console.log('Ping time was ' + String(delta) + ' ms');
+            $('.statistics_result').html(String(delta) + ' милисекунд');
+        }).catch(function(err) {
+            console.error('Could not ping remote URL', err);
+        });
+        
+        
+    })
 </script>
 </html>
