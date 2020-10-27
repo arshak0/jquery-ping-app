@@ -3,6 +3,7 @@
 <head>
     <meta charset="utf-8">
     <title>"Пингователь" любого сервера на JavaScript</title>
+    <link rel="shortcut icon" type="image/png" href="favicon.ico">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,600;0,700;0,800;1,300;1,400;1,600;1,700;1,800&display=swap');
@@ -26,62 +27,12 @@
         .app_modas_div_p {
             margin-left:10px;
         }
-
-        .app_connected_status {
-            float: right;
-            padding: 5px;
-            border-radius: 5px;
-            font-weight: bold;
-            font-size: 14px;
-        }
-
-        .app_connected_success {
-            color: #038C7E;
-        }
-
-        .app_connected_pulse {
-            margin: auto 8px;
-            display: inline-block;
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-        }
-
-        .app_connected_success .app_connected_pulse {
-            animation: pulse 2s infinite;
-            background:#038C7E;
-            box-shadow: 0 0 0 #038C7E;
-        }
-
         img.app_logo {
             position: absolute;
             width: 70px;
             height: 70px;
             left: 60px;
             top: 40px;
-        }
-
-        .app_connected_pulse {
-            animation: none;
-            background: #D90D32;
-            box-shadow: none;
-        }
-
-        @keyframes pulse {
-        0% {
-            background: rgba(2, 140, 126, 1);
-            box-shadow: 0 0 0 0 rgba(2, 140, 126, 0.4);
-        }
-
-        70% {
-            background: rgba(2, 140, 126, 0.8);
-            box-shadow: 0 0 0 10px rgba(2, 140, 126, 0);
-        }
-
-        100% {
-            background: rgba(2, 140, 126, 0.2);
-            box-shadow: 0 0 0 0 rgba(2, 140, 126, 0);
-        }
         }
 
         .app_author_name_div {
@@ -176,12 +127,9 @@
 <body>
     <div class="app_body">
         <div class="headline_block">
-          <img class="app_logo" src="/icon_logo.png" alt=""></img>
-          <h1 class="app_h1">Приложение для котировок с биржи</h1>
-          <h2 class="app_h2"> По нажатию на “Старт” происходит подключение к эмулятору для получения котировок онлайн.
-            При нажатии на кнопку “Статистика” отображает на странице такие статистические значения: среднее, стандартное отклонение,
-            моду, медиану. Расчеты осуществляются по всем полученным данным от момента старта до текущего момента нажатия кнопки
-            “Статистика”, кнопку можно нажимать сколько угодно раз для получения новых результатов на текущее время.</h2>
+          <img class="app_logo" src="icon_logo.png" alt=""></img>
+          <h1 class="app_h1">"Пингователь" любого сервера</h1>
+          <h2 class="app_h2"> Программа показывает примерное время пинга до сервера указанного в поле ввода</h2>
           <div  class="app_author_name_div">
             <p class="app_author_name">Arshak Ishkhanyan </p>
           </div>
@@ -191,35 +139,21 @@
         <div class="app_main_body">
           <div class="app_buttons_div">
             <form class="app_button_form">
-              <button class="app_button" onClick={this.handleStartButton} >Start</button>
+              <button class="app_button" >Start</button>
             </form>
             <form class="app_button_form">
-              <button class="app_button" onClick={this.handleStatisticsButton} >Statistics</button>
+              <button class="app_button" >Statistics</button>
             </form>
-            {this.state.connected && <div class="app_started">
-              <span class="app_connected_status app_connected_success"><i class="app_connected_pulse"></i>Connected</span>
-            </div>}
           </div>
-          {this.state.showStatistics && <div class="app_statisticsBlock">
-            <p class="statistics_headline">Среднее арифметическое</p>
-              <p class="statistics_result"> { this.state.averageValue.toFixed(2) } </p>
-            <p class="statistics_headline">Стандартное отклонение</p>
-              <p class="statistics_result"> { this.state.standardDeviation.toFixed(2) } </p>
-            <p class="statistics_headline">Мода/Моды</p>
-              <div class="app_modas_div">
-                {modas.map( moda => <p class = "app_modas_div_p statistics_result" > {moda} </p> )}
-              </div>
-            <p class="statistics_headline">Сколько раз встречается мода/моды</p>
-              <p class="statistics_result"> { this.state.modasValue } </p>
-            <p class="statistics_headline mediana_headline">Медиана</p>
-              <p class="statistics_result"> { this.state.mediana } </p>
-            <p class="statistics_headline">Время вычислений (в миллисекундах)</p>
-              <p class="statistics_result"> { this.state.calculationTime } </p>
-          </div>}
+          
+          <div class="app_statisticsBlock">
+            <p class="statistics_headline"> Время пинга до сервера </p>
+              <p class="statistics_result"> - </p>
+          </div>
         </div>
     </div>    
 </body>
 <script>
-    console.log(1);
+    $('.app_statisticsBlock').css('margin-top','100px');
 </script>
 </html>
