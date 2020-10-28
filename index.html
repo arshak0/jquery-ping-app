@@ -124,7 +124,7 @@
     <div class="app_body">
         <div class="headline_block">
           <img class="app_logo" src="icon_logo.png" alt=""></img>
-          <h1 class="app_h1">"Пингователь" любого сервера</h1>
+          <h1 class="app_h1">Пинг сервера</h1>
           <h2 class="app_h2"> Программа показывает примерное время пинга до сервера указанного в поле ввода
               <br>
             Введите полный адрес сервера. Например, https://ebay.com</h2>
@@ -143,67 +143,109 @@
           </div>
           
           <div class="app_statisticsBlock">
-            <p class="statistics_headline"> Время пинга до сервера </p>
-              <p class="statistics_result"> - </p>
+            <p class="statistics_headline"> Время пинга до сервера (Первый способ) </p>
+            <p class="statistics_result first"> - </p>
+            <p class="statistics_headline"> Время пинга до сервера (Второй способ) </p>
+            <p class="statistics_result second"> - </p>
           </div>
         </div>
     </div>    
 </body>
 <script>
 
-(function (root, factory) { if (typeof define === 'function' && define.amd) { define([], factory); } else if (typeof module === 'object' && module.exports) { module.exports = factory(); } else { root.ping = factory(); }
-}(this, function () {
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    /**
-     * Creates and loads an image element by url.
-     * @param  {String} url
-     * @return {Promise} promise that resolves to an image element or
-     *                   fails to an Error.
-     */
-    function request_image(url) {
-        return new Promise(function(resolve, reject) {
-            var img = new Image();
-            img.onload = function() { resolve(img); };
-            img.onerror = function() { reject(url); };
-            img.src = url + '?random-no-cache=' + Math.floor((1 + Math.random()) * 0x10000).toString(16);
-        });
+ var Ping = function(opt) {
+    this.opt = opt || {};
+    this.favicon = this.opt.favicon || "/favicon.ico";
+    this.timeout = this.opt.timeout || 0;
+    this.logError = this.opt.logError || false;
+};
+
+Ping.prototype.ping = function(source, callback) {
+    var self = this;
+    self.wasSuccess = false;
+    self.img = new Image();
+    self.img.onload = onload;
+    self.img.onerror = onerror;
+
+    var timer;
+    var start = new Date();
+
+    function onload(e) {
+        self.wasSuccess = true;
+        pingCheck.call(self, e);
     }
 
-    /**
-     * Pings a url.
-     * @param  {String} url
-     * @param  {Number} multiplier - optional, factor to adjust the ping by.  0.3 works well for HTTP servers.
-     * @return {Promise} promise that resolves to a ping (ms, float).
-     */
-    function ping(url, multiplier) {
-        return new Promise(function(resolve, reject) {
-            var start = (new Date()).getTime();
-            var response = function() { 
-                var delta = ((new Date()).getTime() - start);
-                delta *= (multiplier || 1);
-                resolve(delta); 
-            };
-            request_image(url).then(response).catch(response);
-            // Set a timeout for max-pings, 5s.
-            setTimeout(function() { reject(Error('Timeout')); }, 5000);
-        });
+    function onerror(e) {
+        self.wasSuccess = false;
+        pingCheck.call(self, e);
     }
-    
-    return ping;
-}));
 
-    $('.app_button_form').on('submit',function(e) {
-        e.preventDefault();
-        let ping_time=0;
-        ping(e.target.firstElementChild.value).then(function(delta) {
-            console.log('Ping time was ' + String(delta) + ' ms');
-            
-            $('.statistics_result').html(String(delta) + ' милисекунд');
-        }).catch(function(err) {
-            console.error('Could not ping remote URL', err);
-        });
-        
-        
-    })
+    if (self.timeout) {
+        timer = setTimeout(function() {
+            pingCheck.call(self, undefined);
+    }, self.timeout); }
+
+
+    /**
+     * Times ping and triggers callback.
+     */
+    function pingCheck() {
+        if (timer) { clearTimeout(timer); }
+        var pong = new Date() - start;
+
+        if (typeof callback === "function") {
+            // When operating in timeout mode, the timeout callback doesn't pass [event] as e.
+            // Notice [this] instead of [self], since .call() was used with context
+            if (!this.wasSuccess) {
+                if (self.logError) { console.error("error loading resource"); }
+                return callback("error", pong);
+            }
+            return callback(null, pong);
+        }
+    }
+
+    self.img.src = source + self.favicon + "?" + ( + new Date() ); // Trigger image load with cache buster
+};
+
+if (typeof exports !== "undefined") {
+    if (typeof module !== "undefined" && module.exports) {
+        module.exports = Ping;
+    }
+} else {
+    window.Ping = Ping;
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+$('.app_button_form').on('submit',function(e) {
+    e.preventDefault();
+
+    var p = new Ping();
+
+    p.ping(e.target.firstElementChild.value, function(err, data) {
+    // Also display error if err is returned.
+    if (err) {
+        console.log("error loading resource")
+        data = data + " " + err;
+    }
+    //Filling the .statistics_result block with the data of server ping
+    $('.statistics_result.first').html( data + ' милисекунд' );
+    });
+
+    var start = new Date();
+    $.ajax({
+        type: 'GET',
+        url: 'http://cors-anywhere.herokuapp.com/'+ e.target.firstElementChild.value + '?'+ new Date(),
+        crossDomain: true,
+        async: true,
+        success: function (data) {
+        var end = new Date();
+            $('.statistics_result.second').html( end-start + ' милисекунд' );
+        }
+    });
+ 
+})
+
 </script>
 </html>
